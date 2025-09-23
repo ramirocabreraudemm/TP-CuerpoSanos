@@ -17,12 +17,9 @@ app.get('/', (req, res) => {
   });
 });
 
-// Aquí luego conectarás tus otras rutas:
-// app.use('/api/miembros', require('./routes/miembros'));
-// app.use('/api/membresias', require('./routes/membresias'));
-// ... etc
+// Rutas
 
-// Middleware de manejo de errores (opcional por ahora)
+// Middleware 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: '¡Algo salió mal en el servidor!' });
