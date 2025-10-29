@@ -36,6 +36,7 @@ export default {
     return {
       // ⚠️ Inicia en null → muestra "Verificando..." si lo implementas, o nada hasta que se cargue
       apiStatus: null,
+      apiCheckInterval: null,
       modules: [
         {
           title: "Gestión de Miembros",
@@ -89,9 +90,10 @@ export default {
   },
   methods: {
     async checkApiStatus() {
+      const API = import.meta.env.VITE_API_URL
       try {
         //llama a  endpoint /api
-        const response = await fetch('/api')
+        const response = await fetch(`${API}/health`)
         this.apiStatus = response.ok // true si 200-299, false si 4xx/5xx
       } catch (error) {
         // Error de red (CORS, timeout, DNS, etc.)

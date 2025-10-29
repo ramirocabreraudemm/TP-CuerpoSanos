@@ -19,7 +19,9 @@
         <div class="card">
           <div class="hd">
             <h2>CU-01 — Registrar/Modificar Miembro</h2>
-            <span class="chip">Acción visible</span>
+           <span class="chip" :class="miembro.activo ? 'ok' : 'err'">
+            {{ miembro.activo ? 'Miembro Activo' : 'Miembro Inactivo' }}
+            </span>
           </div>
           <div class="bd">
             <div class="state hide-on-print" v-if="mensaje">{{ mensaje }}</div>
@@ -30,7 +32,7 @@
               </div>
               <div>
                 <label>Teléfono</label>
-                <input type="text" v-model="miembro.tel" placeholder="Ej.: +54 11 5555-5555" />
+                <input type="text" v-model="miembro.telefono" placeholder="Ej.: +54 11 5555-5555" />
               </div>
               <div>
                 <label>DNI</label>
@@ -52,12 +54,25 @@
                 </select>
               </div>
               <div>
-                <label>Fecha de inicio</label>
-                <input type="date" v-model="miembro.fini" />
+                <label>Fecha de registro</label>
+                <input type="date" v-model="miembro.fechaRegistro" />
               </div>
               <div>
                 <label>Foto (URL opcional)</label>
                 <input type="text" v-model="miembro.foto" placeholder="https://…" />
+              </div>
+              <div>
+                 <label>Métodos de identificación</label>
+                  <div>
+                    <label>
+                      <input type="checkbox" value="codigo_barras" v-model="miembro.metodosIdentificacion" />
+                      Código de barras
+                    </label>
+                    <label>
+                      <input type="checkbox" value="huella_digital" v-model="miembro.metodosIdentificacion" />
+                      Huella digital
+                    </label>
+                  </div>
               </div>
             </div>
           </div>
@@ -66,7 +81,9 @@
             <button class="btn" @click="modificar">Modificar</button>
             <button class="btn error" @click="eliminar">Eliminar</button>
           </div>
+          
         </div>
+        
 
         <div class="card">
           <div class="hd">
@@ -87,7 +104,7 @@
                   <td>{{ m.nombre }}</td>
                   <td>{{ m.dni }}</td>
                   <td>{{ m.tipo }}</td>
-                  <td>{{ m.fini }}</td>
+                  <td>{{ m.fechaRegistro }}</td>
                 </tr>
               </tbody>
             </table>
@@ -118,15 +135,17 @@ const buscar = ref('')
 const mensaje = ref('')
 const activeTab = ref('cu01')
 const miembro = ref({
-  nombre: '',
-  tel: '',
+ nombre: '',
   dni: '',
+  telefono: '',
   email: '',
-  fnac: '',
-  tipo: '',
-  fini: '',
-  foto: ''
-})
+  fecha_nacimiento: '',
+  fechaRegistro: '', // fecha de inicio
+  foto: '',
+  activo: '',
+  metodosIdentificacion: [] 
+});
+
 
 const miembrosFiltrados = computed(() =>
   miembros.value.filter(m =>
@@ -158,7 +177,7 @@ async function cargarMembresias() {
 }
 
 async function registrar() {
-  if (!miembro.value.nombre || !miembro.value.dni || !miembro.value.tipo || !miembro.value.fini) {
+  if (!miembro.value.nombre || !miembro.value.dni || !miembro.value.tipo || !miembro.value.freg) {
     return alert('Complete los campos obligatorios')
   }
   await axios.post(`${API}/miembros`, miembro.value)
@@ -186,7 +205,7 @@ function prefill(m) {
 }
 
 function limpiar() {
-  miembro.value = { nombre: '', tel: '', dni: '', email: '', fnac: '', tipo: '', fini: '', foto: '' }
+  miembro.value = { nombre: '', tel: '', dni: '', email: '', fnac: '', tipo: '', freg: '', foto: '' }
 }
 
 function imprimir() {
