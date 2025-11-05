@@ -1,4 +1,5 @@
 const { Miembro, Membresia, TipoMembresia } = require('../../../models');
+const { generarCodigoDeBarras } = require('../../../utils/barcodeGenerator'); // 👈 importás tu util
 
 // Crear miembro + membresía
 module.exports = async (req, res) => {
@@ -19,6 +20,19 @@ module.exports = async (req, res) => {
       Array.isArray(data.metodo_identificacion)
         ? data.metodo_identificacion[0]
         : data.metodo_identificacion;
+
+    let codigoBarra = null;
+    let codigoVisible = null;
+    if (metodo === 'codigo_barra') {
+      const { codigo, hash } = generarCodigoDeBarras(); // 🔸 llamado al util
+      codigoBarra = hash; // lo que se guarda en BD
+      codigoVisible = codigo; // lo que podés devolver al front
+    }
+
+     const existente = await Miembro.findOne({ where: { dni: data.dni } });
+    if (existente) {
+      return res.status(409).json({ error: 'Ya existe un miembro con ese DNI' });
+    }
 
       
     // 1️⃣ Crear el miembro

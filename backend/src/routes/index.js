@@ -8,8 +8,25 @@ const deleteMiembro = require('./controllers/miembros/delete');
 const getAllMiembros = require('./controllers/miembros/get-all');
 
 
-
+// === MEMBRESIAS ===
 const getMembresias = require('./controllers/membresias/get-all');
+const createMembresias = require('./controllers/membresias/create');
+const updateMembresias = require('./controllers/membresias/update');
+const removeMembresias = require('./controllers/membresias/delete');
+
+// === CLASES ===
+const getClases = require('../controllers/clases/getAll');
+const createClases = require('../controllers/clases/create');
+const updateClases = require('../controllers/clases/update');
+const removeClases = require('../controllers/clases/delete');
+
+// === INSCRIPCIONES ===
+const getInscripciones = require('../controllers/inscripciones/getAll');
+const createInscripciones = require('../controllers/inscripciones/create');
+const updateInscripciones = require('../controllers/inscripciones/update');
+const removeInscripciones = require('../controllers/inscripciones/delete');
+
+
 
 // --- Rutas para MIEMBROS ---
 router.post('/miembros', crearMiembro);
@@ -17,6 +34,23 @@ router.put('/miembros/:dni', updateMiembro);
 router.delete('/miembros/:dni', deleteMiembro);
 router.get('/miembros', getAllMiembros);
 
+// --- Rutas para MEMBRESIAS ---
+
 router.get('/TipoMembresias', getMembresias);
+router.post('/TipoMembresias', createMembresias);
+router.put('/TipoMembresias/:id', updateMembresias);
+router.delete('/TipoMembresias/:id', removeMembresias);
+
+
+// --- Rutas para CLASES ---
+router.get('/clases', getClases);
+router.post('/clases', createClases);
+router.put('/clases/:id', updateClases);
+router.delete('/clases/:id', removeClases);
+
+router.get('/inscripciones', getInscripciones);
+router.post('/inscripciones', createInscripciones);
+router.put('/inscripciones/:dni_miembro/:id_clase', updateInscripciones);
+router.delete('/inscripciones/:dni_miembro/:id_clase', removeInscripciones);
 
 module.exports = router;
