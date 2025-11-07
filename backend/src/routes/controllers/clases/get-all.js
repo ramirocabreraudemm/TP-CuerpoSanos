@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
       duracion_minutos: c.duracion_minutos,
       cupo_maximo: c.cupo_maximo,
       entrenador: `${c.entrenador.nombre} ${c.entrenador.apellido}`,
-      id_entrenador: 'c.entrandor.id',
+      id_entrenador: c.entrenador.id,
       dias: c.dias.map(d => d.dia_semana)
     }));
 

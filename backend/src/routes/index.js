@@ -15,16 +15,16 @@ const updateMembresias = require('./controllers/membresias/update');
 const removeMembresias = require('./controllers/membresias/delete');
 
 // === CLASES ===
-const getClases = require('../controllers/clases/getAll');
-const createClases = require('../controllers/clases/create');
-const updateClases = require('../controllers/clases/update');
-const removeClases = require('../controllers/clases/delete');
+const getClases = require('./controllers/clases/get-all');
+const createClases = require('./controllers/clases/create');
+const updateClases = require('./controllers/clases/update');
+const removeClases = require('./controllers/clases/delete');
 
 // === INSCRIPCIONES ===
-const getInscripciones = require('../controllers/inscripciones/getAll');
-const createInscripciones = require('../controllers/inscripciones/create');
-const updateInscripciones = require('../controllers/inscripciones/update');
-const removeInscripciones = require('../controllers/inscripciones/delete');
+const getInscripciones = require('./controllers/inscripciones/get-all');
+const createInscripciones = require('./controllers/inscripciones/create');
+const updateInscripciones = require('./controllers/inscripciones/update');
+const removeInscripciones = require('./controllers/inscripciones/delete');
 
 
 
@@ -48,6 +48,7 @@ router.post('/clases', createClases);
 router.put('/clases/:id', updateClases);
 router.delete('/clases/:id', removeClases);
 
+// --- Rutas para INSCRIPCIONES ---
 router.get('/inscripciones', getInscripciones);
 router.post('/inscripciones', createInscripciones);
 router.put('/inscripciones/:dni_miembro/:id_clase', updateInscripciones);

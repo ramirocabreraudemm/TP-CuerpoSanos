@@ -1,5 +1,5 @@
 const { Miembro, Membresia, TipoMembresia } = require('../../../models');
-const { generarCodigoDeBarras } = require('../../../utils/barcodeGenerator'); // 👈 importás tu util
+const { generarCodigoDeBarras } = require('../../utils/barcodeGenerator'); // 👈 importás tu util
 
 // Crear miembro + membresía
 module.exports = async (req, res) => {
