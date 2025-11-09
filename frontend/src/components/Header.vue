@@ -15,7 +15,8 @@
           {{ apiStatus ? 'API Conectada' : 'API Desconectada' }}
         </span>
       </div>
-
+      
+      <NavTabs />
       <!-- Clock -->
       <span class="chip clock">🕒 {{ hora }}</span>
     </div>
@@ -23,6 +24,7 @@
 </template>
 
 <script setup>
+import NavTabs from './NavTabs.vue'
 import { ref, onMounted } from 'vue'
 
 const props = defineProps({

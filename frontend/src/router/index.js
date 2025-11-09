@@ -1,19 +1,29 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/home.vue'
-import MembersView from '../views/MiembrosView.vue'
+import MiembrosView from '../views/MiembrosView.vue'
+import MembresiasView from '../views/MembresiasView.vue'
+import ClasesView from '../views/ClasesView.vue'
+import ActividadesView from '../views/ActividadesView.vue'
+import EntrenadoresView from '../views/EntrenadoresView.vue'
+import IngresoGimnasioView from '../views/IngresoGimnasioView.vue'
+import PagosView from '../views/PagosView.vue'
+import ReporteIngresosView from '../views/ReporteIngresosView.vue'
+import ReporteAsistenciaView from '../views/ReporteAsistenciaView.vue'
+
 
 const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/miembros',
-    name: 'Members',
-    component: MembersView
-  }
+  { path: '/', name: 'Home', component: Home, meta: { showInTabs: true, label: 'Home', order: 0 } },
+  { path: '/miembros', name: 'Miembros', component: MiembrosView, meta: { showInTabs: true, label: 'CU-01 Miembros', order: 1 } },
+  { path: '/membresias', name: 'Membresias', component: MembresiasView, meta: { showInTabs: true, label: 'CU-02 Membresías', order: 2 } },
+  { path: '/clases', name: 'Clases', component: ClasesView, meta: { showInTabs: true, label: 'CU-03 Clases', order: 3 } },
+  { path: '/actividades', name: 'Actividades', component: ActividadesView, meta: { showInTabs: true, label: 'CU-04 Actividades', order: 4 } },
+  { path: '/entrenadores', name: 'Entrenadores', component: EntrenadoresView, meta: { showInTabs: true, label: 'CU-05 Entrenadores', order: 5 } },
+  { path: '/ingreso-gimnasio', name: 'IngresoGimnasio', component: IngresoGimnasioView, meta: { showInTabs: true, label: 'CU-06 Ingreso', order: 6 } },
+  { path: '/pagos', name: 'Pagos', component: PagosView, meta: { showInTabs: true, label: 'CU-07 Pagos', order: 7 } },
+  { path: '/reportes/ingresos', name: 'ReporteIngresos', component: ReporteIngresosView, meta: { showInTabs: true, label: 'Reporte Ingresos', order: 8 } },
+  { path: '/reportes/asistencia', name: 'ReporteAsistencia', component: ReporteAsistenciaView, meta: { showInTabs: true, label: 'Reporte Asistencia', order: 9 } },
 ]
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
