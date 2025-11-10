@@ -70,8 +70,8 @@ const updateMetodoPago = require('./controllers/metodoPagos/update');
 
 // --- Rutas para MIEMBROS ---
 router.post('/miembros', crearMiembro);
-router.put('/miembros/:dni', updateMiembro);
-router.delete('/miembros/:dni', deleteMiembro);
+router.put('/miembros/:id', updateMiembro);
+router.delete('/miembros/:id', deleteMiembro);
 router.get('/miembros', getAllMiembros);
 
 // --- Rutas para TIPO MEMBRESIAS ---

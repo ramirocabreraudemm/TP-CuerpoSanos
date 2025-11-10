@@ -1,26 +1,28 @@
-const { Miembro, Membresia, TipoMembresia } = require('../../../models');
+const { Miembro, Membresia } = require('../../../models');
 
 module.exports = async (req, res) => {
   try {
-    const { dni } = req.params;
+    const { id } = req.params;
 
-    // Buscamos al miembro por DNI
-    const miembro = await Miembro.findOne({ where: { dni } });
-    if (!miembro) return res.status(404).json({ error: 'Miembro no encontrado' });
+    // 🔎 Buscar miembro por ID
+    const miembro = await Miembro.findByPk(id);
+    if (!miembro) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
 
-    // Desactivamos el miembro
-    await miembro.update({ activo: false });
+    // 🚫 Desactivar el miembro (activo = 0)
+    await miembro.update({ activo: 0 });
 
-    // Si tiene membresía, la marcamos como cancelada (o inactiva)
+    // 🔄 Si tiene membresía, marcarla como cancelada
     const membresia = await Membresia.findOne({ where: { id_miembro: miembro.id } });
     if (membresia) {
       await membresia.update({ estado: 'cancelada' });
     }
 
-    res.json({ message: 'Miembro desactivado correctamente' });
+    res.status(200).json({ message: 'Miembro desactivado correctamente' });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'No se pudo desactivar el miembro' });
+    console.error('Error al desactivar miembro:', error);
+    res.status(500).json({ error: 'No se pudo desactivar el miembro', detalles: error.message });
   }
 };
