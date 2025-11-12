@@ -48,6 +48,7 @@
         <select v-model="metodo">
           <option value="codigo_barras">Código de barras</option>
           <option value="huella">Huella</option>
+          <option value="manual">Manual</option>
         </select>
       </div>
     </form>

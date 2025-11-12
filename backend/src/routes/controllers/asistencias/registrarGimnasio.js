@@ -20,9 +20,9 @@ module.exports = async (req, res) => {
     }
 
     // ✅ Validar método de identificación
-    // Suponemos que el modelo Miembro tiene un campo `metodo_identificacion` (ej: 'huella', 'codigo_barras', 'manual')
-    if (miembro.metodo_identificacion && miembro.metodo_identificacion !== 'manual') {
-      if (miembro.metodo_identificacion !== metodo_identificacion) {
+    // Si el método es manual, siempre permitir
+    if (metodo_identificacion !== 'manual') {
+      if (miembro.metodo_identificacion && miembro.metodo_identificacion !== metodo_identificacion) {
         return res.status(403).json({
           error: `El método de identificación "${metodo_identificacion}" no está permitido para este miembro. ` +
                  `Debe ingresar utilizando su método registrado: "${miembro.metodo_identificacion}".`
