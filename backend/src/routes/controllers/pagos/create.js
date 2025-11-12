@@ -22,7 +22,6 @@ module.exports = async (req, res) => {
 
     // Crear una nueva membresía para este miembro basada en el tipo seleccionado
     const inicio = new Date();
-    // Duración en días definida en el tipo
     const durDias = Number(tipo.duracion_dias) || 0;
     const fin = new Date(inicio.getTime() + durDias * 24 * 60 * 60 * 1000);
 
@@ -39,15 +38,21 @@ module.exports = async (req, res) => {
       fecha_pago: new Date(),
       monto,
       id_metodoPago,
-      estado_pago: 'confirmado', // al registrarlo ya se confirma
+      estado_pago: 'confirmado',
       id_miembro: miembro.id,
       id_membresia: nuevaMembresia.id
     });
 
+    // ✅ Si el miembro estaba inactivo, activarlo
+    if (!miembro.activo) {
+      await miembro.update({ activo: 1 });
+    }
+
     res.status(201).json({
       message: 'Pago registrado correctamente y membresía creada/activada',
       pago: nuevoPago,
-      membresia: nuevaMembresia
+      membresia: nuevaMembresia,
+      miembro: { id: miembro.id, nombre: miembro.nombre, activo: 1 }
     });
 
   } catch (error) {
