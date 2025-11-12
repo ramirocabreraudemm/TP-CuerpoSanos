@@ -1,9 +1,7 @@
 <template>
   <div class="grid">
     <BaseCard>
-      <template #header>
-        <h2>CU-07 — Inscripciones</h2>
-      </template>
+      <template #header><h2>CU-07 — Inscripciones</h2></template>
 
       <form class="row" @submit.prevent="onCreate">
         <div>
@@ -66,6 +64,7 @@
 import { ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
 import { listAll, createOne, deleteOne, listMiembros, listClases } from '../services/inscripciones.js'
+import BaseCard from '../components/ui/BaseCard.vue'
 
 // Datos reactivos
 const miembros = ref([])
