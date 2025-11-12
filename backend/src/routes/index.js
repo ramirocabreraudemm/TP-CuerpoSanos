@@ -114,7 +114,7 @@ router.delete('/actividades/:id', removeActividad);
 
 // --- Rutas para ASISTENCIAS ---
 router.post('/asistencias/gimnasio', registrarGimnasio);
-router.post('/asistencias/clase', registrarClase);
+router.post('/asistencias/clases', registrarClase);
 router.get('/asistencias/reportes', getReportes);
 router.get('/asistencias/gimnasio', getAllGimnasio);
 router.get('/asistencias/clases', getAllClases);

@@ -26,13 +26,29 @@
             <div><strong>{{ c.nombre }}</strong> — {{ c.entidad_emisora }} ({{ c.fecha_emision }} → {{ c.fecha_vencimiento }})</div>
             <button class="btn" type="button" @click="removeCertification(idx)">Eliminar</button>
           </div>
-          <div class="row">
-            <input v-model="newCert.nombre" placeholder="Nombre cert" />
-            <input v-model="newCert.entidad_emisora" placeholder="Entidad" />
-            <input v-model="newCert.fecha_emision" type="date" />
-            <input v-model="newCert.fecha_vencimiento" type="date" />
-            <button class="btn" type="button" @click="addCertification">Agregar</button>
+          <div class="row" 
+              style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-top:8px;">
+            <div style="flex:1; min-width:150px;">
+              <label>Nombre cert</label>
+              <input v-model="newCert.nombre" type="text" placeholder="Nombre cert" required/>
+            </div>
+            <div style="flex:1; min-width:150px;">
+              <label>Entidad</label>
+              <input v-model="newCert.entidad_emisora" type="text" placeholder="Entidad" />
+            </div>
+            <div style="flex:1; min-width:150px;">
+              <label>Emisión</label>
+              <input v-model="newCert.fecha_emision" type="date" />
+            </div>
+            <div style="flex:1; min-width:150px;">
+              <label>Vencimiento</label>
+              <input v-model="newCert.fecha_vencimiento" type="date" />
+            </div>
+            <div>
+              <button class="btn" type="button" @click="addCertification">Agregar</button>
+            </div>
           </div>
+
         </div>
       </form>
       <template #footer>
