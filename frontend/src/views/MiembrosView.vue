@@ -114,21 +114,20 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import Header from '../components/Header.vue'
-
+import Swal from 'sweetalert2'
 import * as membersApi from '../services/members.js'
 import * as membershipsApi from '../services/memberships.js'
+
 import BaseCard from '../components/ui/BaseCard.vue'
 import Toolbar from '../components/ui/Toolbar.vue'
 
-const hora = ref('—')
 const miembros = ref([])
 const tipos = ref([])
 const buscar = ref('')
 const mensaje = ref('')
-const activeTab = ref('cu01')
+const hora = ref('—')
 
-// Modelo de miembro con todos los campos
+// Modelo
 const miembro = ref({
   id: null,
   nombre: '',
@@ -144,7 +143,7 @@ const miembro = ref({
   tipo: ''
 })
 
-// Filtrado de miembros para la tabla
+// Computado para filtro
 const miembrosFiltrados = computed(() =>
   miembros.value.filter(m =>
     m.nombre.toLowerCase().includes(buscar.value.toLowerCase()) ||
@@ -152,71 +151,108 @@ const miembrosFiltrados = computed(() =>
   )
 )
 
+// Carga inicial
 onMounted(() => {
-  // Reloj
+  cargarMembresias()
+  cargarMiembros()
   setInterval(() => {
     const d = new Date()
     const pad = x => String(x).padStart(2, '0')
     hora.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
   }, 1000)
-
-  cargarMembresias()
-  cargarMiembros()
 })
 
-// Traer miembros desde la API
+// Traer miembros
 async function cargarMiembros() {
-  const data = await membersApi.listAll({ q: buscar.value })
-  miembros.value = data.map(m => ({
-    ...m,
-    nombreCompleto: `${m.nombre} ${m.apellido}`,
-    tipo: m.membresias?.length ? (m.membresias[0].tipo?.id ?? m.membresias[0].tipo) : (m.tipo ?? ''),
-    tipoNombre: m.membresias?.length ? (m.membresias[0].tipo?.nombre ?? m.membresias[0].tipo) : (m.tipoNombre ?? '')
-  }))
+  try {
+    const data = await membersApi.listAll({ q: buscar.value })
+    miembros.value = data.map(m => ({
+      ...m,
+      nombreCompleto: `${m.nombre} ${m.apellido}`,
+      tipo: m.membresias?.length ? (m.membresias[0].tipo?.id ?? m.membresias[0].tipo) : (m.tipo ?? ''),
+      tipoNombre: m.membresias?.length ? (m.membresias[0].tipo?.nombre ?? m.membresias[0].tipo) : (m.tipoNombre ?? '')
+    }))
+  } catch (error) {
+    Swal.fire('Error', 'No se pudieron cargar los miembros', 'error')
+    console.error(error)
+  }
 }
 
 // Traer tipos de membresía
 async function cargarMembresias() {
-  tipos.value = await membershipsApi.listAll()
+  try {
+    tipos.value = await membershipsApi.listAll()
+  } catch (error) {
+    Swal.fire('Error', 'No se pudieron cargar los tipos de membresía', 'error')
+  }
 }
 
 // Registrar
 async function registrar() {
-  try {
-    if (!miembro.value.nombre || !miembro.value.apellido || !miembro.value.dni || !miembro.value.tipo)
-      return alert('Complete los campos obligatorios')
+  if (!miembro.value.nombre || !miembro.value.apellido || !miembro.value.dni || !miembro.value.tipo) {
+    return Swal.fire('Campos incompletos', 'Complete todos los campos obligatorios', 'warning')
+  }
 
-    await membersApi.createOne(miembro.value)
+  try {
+    const result = await membersApi.createOne(miembro.value)
+    await Swal.fire('Éxito', 'Miembro registrado correctamente', 'success')
     await cargarMiembros()
     limpiar()
   } catch (error) {
-    if (error.response && error.response.data?.detalles) {
-      // Muestra los errores de validación del backend
-      alert('Errores: ' + error.response.data.detalles.join(', '));
+    if (error.response?.status === 409) {
+      Swal.fire('Duplicado', 'Ya existe un miembro con ese DNI', 'error')
+    } else if (error.response?.data?.detalles) {
+      Swal.fire('Error de validación', error.response.data.detalles.join('<br>'), 'error')
     } else {
-      alert('No se pudo crear el miembro');
-      console.error(error);
+      Swal.fire('Error', 'No se pudo crear el miembro', 'error')
     }
+    console.error(error)
   }
 }
+
 // Modificar
 async function modificar() {
-  if (!miembro.value.id) return alert('Seleccione un miembro')
-  await membersApi.updateOne(miembro.value.id, miembro.value)
-  await cargarMiembros()
-  limpiar()
+  if (!miembro.value.id) return Swal.fire('Atención', 'Seleccione un miembro para modificar', 'info')
+
+  try {
+    await membersApi.updateOne(miembro.value.id, miembro.value)
+    await Swal.fire('Éxito', 'Miembro actualizado correctamente', 'success')
+    await cargarMiembros()
+    limpiar()
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo actualizar el miembro', 'error')
+    console.error(error)
+  }
 }
 
-// Eliminar
+// Eliminar (desactivar)
 async function eliminar() {
-  if (!miembro.value.id) return alert('Seleccione un miembro')
-  if (!confirm(`¿Eliminar a ${miembro.value.nombre}?`)) return
-  await membersApi.deleteOne(miembro.value.id)
-  await cargarMiembros()
-  limpiar()
+  if (!miembro.value.id) return Swal.fire('Seleccione un miembro', '', 'info')
+
+  const confirm = await Swal.fire({
+    title: `¿Desactivar a ${miembro.value.nombre}?`,
+    text: 'El miembro y su membresía quedarán inactivos.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, desactivar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33'
+  })
+
+  if (!confirm.isConfirmed) return
+
+  try {
+    await membersApi.deleteOne(miembro.value.id)
+    await Swal.fire('Hecho', 'Miembro desactivado correctamente', 'success')
+    await cargarMiembros()
+    limpiar()
+  } catch (error) {
+    Swal.fire('Error', 'No se pudo desactivar el miembro', 'error')
+    console.error(error)
+  }
 }
 
-// Prefill formulario al seleccionar de la tabla
+// Prefill
 function prefill(m) {
   miembro.value = {
     id: m.id,
@@ -234,7 +270,7 @@ function prefill(m) {
   }
 }
 
-// Limpiar formulario
+// Limpiar
 function limpiar() {
   miembro.value = {
     id: null,
@@ -252,11 +288,12 @@ function limpiar() {
   }
 }
 
-// Imprimir listado
+// Imprimir
 function imprimir() {
   window.print()
 }
 </script>
+
 
 
 <style>

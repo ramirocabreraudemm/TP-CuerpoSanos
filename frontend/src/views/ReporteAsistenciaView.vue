@@ -1,7 +1,7 @@
 <template>
   <BaseCard>
     <template #header>
-      <h2>CU-09 — Reporte de Asistencia</h2>
+      <h2>Reporte de Asistencia</h2>
 
       <div class="inline">
         <label>Desde</label>

@@ -20,6 +20,7 @@
         <button v-if="form.id" class="btn error" @click="onDelete">Eliminar</button>
       </template>
     </BaseCard>
+
     <BaseCard>
       <template #header>
         <h3>Listado</h3>
@@ -30,7 +31,9 @@
         </Toolbar>
       </template>
       <table class="table">
-        <thead><tr><th>Nombre</th><th>Descripción</th><th>Nivel</th></tr></thead>
+        <thead>
+          <tr><th>Nombre</th><th>Descripción</th><th>Nivel</th></tr>
+        </thead>
         <tbody>
           <tr v-for="row in items" :key="row.id" @click="fill(row)" style="cursor:pointer">
             <td>{{ row.nombre }}</td>
@@ -42,18 +45,26 @@
     </BaseCard>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import BaseCard from '../components/ui/BaseCard.vue'
 import Toolbar from '../components/ui/Toolbar.vue'
 import * as api from '../services/activities.js'
+
 const q = ref('')
 const items = ref([])
-// default difficulty level set to 'medio'
 const form = ref({ nombre: '', descripcion: '', nivel_dificultad: 'bajo' })
-async function fetch(){ items.value = await api.listAll({ q: q.value }) }
-function clear(){ q.value=''; fetch() }
-function fill(row){
+
+async function fetch() {
+  items.value = await api.listAll({ q: q.value })
+}
+function clear() {
+  q.value = ''
+  fetch()
+}
+function fill(row) {
   form.value = {
     id: row.id,
     nombre: row.nombre ?? '',
@@ -61,19 +72,51 @@ function fill(row){
     nivel_dificultad: row.nivel_dificultad ?? 'bajo'
   }
 }
-async function onSave(){
-  const created = await api.createOne({ ...form.value, id: undefined });
-  // controller returns { message, actividad }
+
+async function onSave() {
+  if (!form.value.nombre) {
+    Swal.fire('Error', 'El nombre es obligatorio', 'error')
+    return
+  }
+
+  const created = await api.createOne({ ...form.value, id: undefined })
   const nueva = created.actividad || created
-  items.value.unshift(nueva);
+  items.value.unshift(nueva)
   form.value = { nombre: '', descripcion: '', nivel_dificultad: 'bajo' }
+
+  Swal.fire('¡Guardado!', 'La actividad fue creada correctamente.', 'success')
 }
-async function onUpdate(){
-  if(!form.value.id) return;
-  const upd = await api.updateOne(form.value.id, { ...form.value });
+
+async function onUpdate() {
+  if (!form.value.id) return
+  const upd = await api.updateOne(form.value.id, { ...form.value })
   const updated = upd.actividad || upd
-  const i = items.value.findIndex(x=>x.id===updated.id); if(i>-1) items.value[i]=updated
+  const i = items.value.findIndex(x => x.id === updated.id)
+  if (i > -1) items.value[i] = updated
+
+  Swal.fire('¡Actualizado!', 'Los datos de la actividad fueron modificados.', 'success')
 }
-async function onDelete(){ if(!form.value.id) return; await api.deleteOne(form.value.id); items.value = items.value.filter(x=>x.id!==form.value.id); form.value = { nombre: '', descripcion: '', nivel_dificultad: 'medio' } }
+
+async function onDelete() {
+  if (!form.value.id) return
+
+  const result = await Swal.fire({
+    title: '¿Eliminar actividad?',
+    text: 'Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (result.isConfirmed) {
+    await api.deleteOne(form.value.id)
+    items.value = items.value.filter(x => x.id !== form.value.id)
+    form.value = { nombre: '', descripcion: '', nivel_dificultad: 'bajo' }
+
+    Swal.fire('Eliminado', 'La actividad fue eliminada correctamente.', 'success')
+  }
+}
+
 onMounted(fetch)
 </script>

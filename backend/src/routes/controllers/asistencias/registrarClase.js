@@ -1,4 +1,4 @@
-const { AsistenciaClase, Miembro, Clase, Membresia, TipoMembresia } = require('../../../models');
+const { AsistenciaClase, Miembro, Clase, Membresia, TipoMembresia, Inscripcion } = require('../../../models');
 const { Op } = require('sequelize');
 
 module.exports = async (req, res) => {
@@ -13,13 +13,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Debe enviar dni o id_miembro' });
     }
 
+    // Buscar miembro por dni o id
     const miembro = dni
       ? await Miembro.findOne({ where: { dni } })
       : await Miembro.findByPk(id_miembro);
 
-    if (!miembro) return res.status(404).json({ error: 'Miembro no encontrado' });
+    if (!miembro) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
 
-    // ✅ Buscar membresía activa o vigente
+    // Buscar membresía activa o vigente
     const hoy = new Date();
     const membresia = await Membresia.findOne({
       where: {
@@ -30,7 +33,6 @@ module.exports = async (req, res) => {
       include: [{ model: TipoMembresia, as: 'tipo', attributes: ['nombre'] }]
     });
 
-    // Si no tiene membresía activa o si la última está vencida o cancelada
     if (!membresia) {
       return res.status(403).json({
         error: `El miembro ${miembro.nombre} ${miembro.apellido} no tiene una membresía activa o está vencida.`
@@ -43,8 +45,22 @@ module.exports = async (req, res) => {
       });
     }
 
+    // Buscar clase
     const clase = await Clase.findByPk(id_clase);
-    if (!clase) return res.status(404).json({ error: 'Clase no encontrada' });
+    if (!clase) {
+      return res.status(404).json({ error: 'Clase no encontrada' });
+    }
+
+    // ✅ Verificar si el miembro está inscripto en la clase
+    const inscripcion = await Inscripcion.findOne({
+      where: { id_miembro: miembro.id, id_clase }
+    });
+
+    if (!inscripcion) {
+      return res.status(403).json({
+        error: `El miembro ${miembro.nombre} ${miembro.apellido} no está inscripto en la clase "${clase.nombre}".`
+      });
+    }
 
     // ✅ Registrar asistencia
     const nuevaAsistencia = await AsistenciaClase.create({
@@ -71,6 +87,7 @@ module.exports = async (req, res) => {
         }
       }
     });
+
   } catch (error) {
     console.error('Error al registrar asistencia a clase:', error);
     res.status(500).json({ error: 'Error interno al registrar asistencia a clase' });

@@ -3,7 +3,10 @@
     <BaseCard>
       <template #header><h2>CU-06 — Especialidades</h2></template>
       <form class="row" @submit.prevent="onSave">
-        <div><label>Nombre</label><input v-model="form.nombre" type="text" placeholder="Musculación" required/></div>
+        <div>
+          <label>Nombre</label>
+          <input v-model="form.nombre" type="text" placeholder="Musculación" required />
+        </div>
       </form>
       <template #footer>
         <button class="btn primary" @click="onSave">Guardar</button>
@@ -16,7 +19,7 @@
       <template #header>
         <h3>Listado</h3>
         <Toolbar>
-          <input v-model="q" type="text" placeholder="Buscar..." @input="fetch">
+          <input v-model="q" type="text" placeholder="Buscar..." @input="fetch" />
           <button class="btn" @click="clear">Limpiar</button>
           <button class="btn" @click="window.print()">Imprimir</button>
         </Toolbar>
@@ -35,6 +38,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import BaseCard from '../components/ui/BaseCard.vue'
 import Toolbar from '../components/ui/Toolbar.vue'
 import * as api from '../services/specialties.js'
@@ -43,34 +47,64 @@ const q = ref('')
 const items = ref([])
 const form = ref({ id: undefined, nombre: '' })
 
-async function fetch(){
+async function fetch() {
   items.value = await api.listAll({ q: q.value })
 }
 
-function clear(){ q.value=''; fetch() }
+function clear() {
+  q.value = ''
+  fetch()
+}
 
-function fill(row){ form.value = { id: row.id, nombre: row.nombre } }
+function fill(row) {
+  form.value = { id: row.id, nombre: row.nombre }
+}
 
-async function onSave(){
-  if(!form.value.nombre) return alert('Ingrese nombre')
+async function onSave() {
+  if (!form.value.nombre) {
+    Swal.fire('Error', 'Ingrese el nombre de la especialidad.', 'error')
+    return
+  }
   const created = await api.createOne({ ...form.value, id: undefined })
-  const nueva = created.membresia || created || created.especialidad || created
-  // Si la API devuelve objeto anidado, hacemos fetch para asegurar lista actualizada
+  const nueva = created.especialidad || created
   await fetch()
   form.value = { id: undefined, nombre: '' }
+  Swal.fire('Guardada', 'La especialidad fue creada correctamente.', 'success')
 }
 
-async function onUpdate(){
-  if(!form.value.id) return
-  const upd = await api.updateOne(form.value.id, { nombre: form.value.nombre })
+async function onUpdate() {
+  if (!form.value.id) {
+    Swal.fire('Error', 'Debe seleccionar una especialidad para modificar.', 'error')
+    return
+  }
+  await api.updateOne(form.value.id, { nombre: form.value.nombre })
   await fetch()
+  Swal.fire('Actualizada', 'La especialidad fue modificada correctamente.', 'success')
 }
 
-async function onDelete(){
-  if(!form.value.id) return
-  await api.deleteOne(form.value.id)
-  await fetch()
-  form.value = { id: undefined, nombre: '' }
+async function onDelete() {
+  if (!form.value.id) {
+    Swal.fire('Error', 'Debe seleccionar una especialidad para eliminar.', 'error')
+    return
+  }
+
+  const result = await Swal.fire({
+    title: '¿Eliminar especialidad?',
+    text: 'Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6'
+  })
+
+  if (result.isConfirmed) {
+    await api.deleteOne(form.value.id)
+    await fetch()
+    form.value = { id: undefined, nombre: '' }
+    Swal.fire('Eliminada', 'La especialidad fue eliminada correctamente.', 'success')
+  }
 }
 
 onMounted(fetch)

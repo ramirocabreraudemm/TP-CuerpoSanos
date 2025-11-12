@@ -15,7 +15,20 @@ module.exports = async (req, res) => {
       ? await Miembro.findOne({ where: { dni } })
       : await Miembro.findByPk(id_miembro);
 
-    if (!miembro) return res.status(404).json({ error: 'Miembro no encontrado' });
+    if (!miembro) {
+      return res.status(404).json({ error: 'Miembro no encontrado' });
+    }
+
+    // ✅ Validar método de identificación
+    // Suponemos que el modelo Miembro tiene un campo `metodo_identificacion` (ej: 'huella', 'codigo_barras', 'manual')
+    if (miembro.metodo_identificacion && miembro.metodo_identificacion !== 'manual') {
+      if (miembro.metodo_identificacion !== metodo_identificacion) {
+        return res.status(403).json({
+          error: `El método de identificación "${metodo_identificacion}" no está permitido para este miembro. ` +
+                 `Debe ingresar utilizando su método registrado: "${miembro.metodo_identificacion}".`
+        });
+      }
+    }
 
     // 🔍 Verificar membresía activa
     const hoy = new Date();
@@ -55,7 +68,8 @@ module.exports = async (req, res) => {
           id: miembro.id,
           nombre: miembro.nombre,
           apellido: miembro.apellido,
-          dni: miembro.dni
+          dni: miembro.dni,
+          metodo_identificacion: miembro.metodo_identificacion
         },
         membresia: {
           tipo: membresia.tipo.nombre,
@@ -64,6 +78,7 @@ module.exports = async (req, res) => {
         }
       }
     });
+
   } catch (error) {
     console.error('Error al registrar asistencia al gimnasio:', error);
     res.status(500).json({ error: 'Error interno al registrar asistencia al gimnasio' });

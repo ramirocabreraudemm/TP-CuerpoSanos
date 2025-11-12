@@ -73,6 +73,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import BaseCard from '../components/ui/BaseCard.vue'
 import * as api from '../services/attendance_class.js'
 
@@ -83,7 +84,6 @@ const selectedClass = ref('')
 const items = ref([])
 const classes = ref([])
 
-// Cargar ingresos y clases al montar
 onMounted(async () => {
   await fetchItems()
   await fetchClasses()
@@ -127,10 +127,25 @@ function deselectMember() {
   selectedMember.value = null
 }
 
-// Registrar ingreso
+// Registrar ingreso con SweetAlert2
 async function onRegister() {
-  if (!selectedMember.value) return alert('Seleccione un miembro.')
-  if (!selectedClass.value) return alert('Seleccione una clase.')
+  if (!selectedMember.value) {
+    return Swal.fire('Atención', 'Seleccione un miembro antes de registrar el ingreso.', 'warning')
+  }
+  if (!selectedClass.value) {
+    return Swal.fire('Atención', 'Seleccione una clase antes de registrar el ingreso.', 'warning')
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Confirmar registro',
+    text: `¿Registrar ingreso de ${selectedMember.value.nombre} ${selectedMember.value.apellido} a la clase ${selectedClass.value.nombre}?`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, registrar',
+    cancelButtonText: 'Cancelar',
+  })
+
+  if (!confirm.isConfirmed) return
 
   const payload = {
     id_miembro: selectedMember.value.id,
@@ -142,9 +157,10 @@ async function onRegister() {
     items.value.unshift(r.ingreso || r)
     selectedMember.value = null
     selectedClass.value = ''
+    Swal.fire('Éxito', 'Ingreso registrado correctamente.', 'success')
   } catch (e) {
     console.error(e)
-    alert('Error al registrar ingreso: ' + (e?.response?.data?.error || e.message))
+    Swal.fire('Error', e?.response?.data?.error || e.message, 'error')
   }
 }
 
@@ -170,7 +186,6 @@ function exportCsv() {
   URL.revokeObjectURL(url)
 }
 
-// Formatear fecha
 function formatDate(d) {
   if (!d) return '—'
   const dt = new Date(d)

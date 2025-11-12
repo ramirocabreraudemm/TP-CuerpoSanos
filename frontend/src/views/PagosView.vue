@@ -12,6 +12,7 @@
               {{ r.dni }} — {{ r.nombre }} {{ r.apellido }}
             </li>
           </ul>
+
           <div style="margin-top:8px">
             <label>Miembro seleccionado</label>
             <div v-if="selected" style="display:flex;align-items:center;gap:8px">
@@ -90,6 +91,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import BaseCard from '../components/ui/BaseCard.vue'
+import Swal from 'sweetalert2'
 import * as api from '../services/payments.js'
 import * as tiposApi from '../services/memberships.js'
 import * as metodosApi from '../services/metodoPagos.js'
@@ -99,7 +101,7 @@ const results = ref([])
 const selected = ref(null)
 const form = reactive({
   id_miembro: null,
-  id_tipo_membresia: null, // seleccionado (TipoMembresia)
+  id_tipo_membresia: null,
   id_metodoPago: null,
   monto: 0,
   fecha_pago: new Date().toISOString().slice(0,10),
@@ -115,11 +117,13 @@ async function fetch() {
 }
 
 async function loadTipoMembresias(){
-  try{ tipos.value = await tiposApi.listAll() }catch(e){ console.error('Error cargando tipos de membresía', e); tipos.value = [] }
+  try{ tipos.value = await tiposApi.listAll() }
+  catch(e){ console.error('Error cargando tipos de membresía', e); tipos.value = [] }
 }
 
 async function loadMetodosPago(){
-  try{ metodos.value = await metodosApi.listAll() }catch(e){ console.error('Error cargando métodos de pago', e); metodos.value = [] }
+  try{ metodos.value = await metodosApi.listAll() }
+  catch(e){ console.error('Error cargando métodos de pago', e); metodos.value = [] }
 }
 
 function formatDate(d) {
@@ -157,28 +161,55 @@ function onTipoChange(){
 }
 
 async function onSave() {
-  if (!form.id_miembro) return alert('Seleccione un miembro antes de registrar el pago')
+  if (!form.id_miembro) {
+    return Swal.fire({
+      icon: 'warning',
+      title: 'Atención',
+      text: 'Debe seleccionar un miembro antes de registrar el pago',
+    })
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Confirmar registro',
+    text: '¿Desea registrar este pago?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, guardar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!confirm.isConfirmed) return
+
   try {
     const r = await api.createOne({ ...form })
-    // backend returns { message, pago, membresia } — normalize the item for the recent list
     const created = r.pago || r
     const display = {
       id: created.id,
       fecha_pago: created.fecha_pago,
       monto: created.monto,
       estado_pago: created.estado_pago,
-      // include metodoPago object if we have it loaded
       metodoPago: metodos.value.find(m => m.id === created.id_metodoPago) || null,
-      // include miembro info from selected if available
       miembro: selected.value ? { id: selected.value.id, nombre: selected.value.nombre, apellido: selected.value.apellido, dni: selected.value.dni } : null
     }
     items.value.unshift(display)
-    // clear selection and reset form
+
     selected.value = null
     Object.assign(form, { id_miembro: null, id_tipo_membresia: null, id_metodoPago: null, monto: 0, observaciones: '' })
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Pago registrado',
+      text: 'El pago se registró correctamente.',
+      timer: 2000,
+      showConfirmButton: false
+    })
   } catch (e) {
     console.error(e)
-    alert('Error al registrar pago: ' + (e?.response?.data?.error || e.message))
+    Swal.fire({
+      icon: 'error',
+      title: 'Error al registrar',
+      text: e?.response?.data?.error || e.message
+    })
   }
 }
 
